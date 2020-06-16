@@ -1,4 +1,4 @@
-job "presto-connect" {
+job "presto" {
   type = "service"
   datacenters = ["dc1"]
 
@@ -35,13 +35,17 @@ job "presto-connect" {
     }
 
     task "certificate-handler" {
+      lifecycle {
+        hook    = "prestart"
+        sidecar = true
+      }
       driver = "docker"
       config {
         image = "nginx:alpine"
         entrypoint = ["/bin/sh"]
         args = [
           "-c", "openssl pkcs12 -export -password pass:changeit -in /local/leaf.pem -inkey /local/leaf.key -certfile /local/roots.pem -out /alloc/presto.p12; tail -f /dev/null"
-        ]
+          ]
       }
       template {
         data = <<EOF
@@ -124,7 +128,7 @@ EOF
         data = <<EOF
 node.id={{ env "NOMAD_ALLOC_ID" }}
 node.environment={{ env "NOMAD_JOB_NAME" | replaceAll "-" "_" }}
-presto.version=330-SNAPSHOT
+#presto.version=334
 node.internal-address=presto
 
 coordinator=true
@@ -136,13 +140,13 @@ http-server.http.enabled=false
 http-server.authentication.type=CERTIFICATE
 http-server.https.enabled=true
 http-server.https.port={{ env "NOMAD_PORT_connect" }}
-http-server.https.keystore.path=/alloc/presto.jks
+http-server.https.keystore.path=/alloc/presto.p12
 http-server.https.keystore.key=changeit
 
 # This is the same jks, but it will not do the consul connect authorization in intra cluster communication
 internal-communication.https.required=true
 internal-communication.shared-secret=asdasdsadafdsa
-internal-communication.https.keystore.path=/alloc/presto.jks
+internal-communication.https.keystore.path=/alloc/presto.p12
 internal-communication.https.keystore.key=changeit
 
 query.client.timeout=5m
@@ -221,12 +225,16 @@ EOF
       port = "connect"
     }
     task "certificate-handler" {
+      lifecycle {
+        hook    = "prestart"
+        sidecar = true
+      }
       driver = "docker"
       config {
-        image = "nginx:alpine"
+        image = "nginx:1.19"
         entrypoint = ["/bin/sh"]
         args = [
-          "-c", "openssl pkcs12 -export -password pass:changeit -in /local/leaf.pem -inkey /local/leaf.key -certfile /local/roots.pem -out /alloc/presto.p12; tail -f /dev/null"
+          "-c", "openssl pkcs12 -export -password pass:changeit -in /local/leaf.pem -inkey /local/leaf.key -certfile /local/roots.pem -out /alloc/presto.p12 && chmod +rx /alloc/presto.p12 && tail -f /dev/null"
         ]
       }
       template {
@@ -312,7 +320,7 @@ EOF
         data = <<EOF
 node.id={{ env "NOMAD_ALLOC_ID" }}
 node.environment={{ env "NOMAD_JOB_NAME" | replaceAll "-" "_" }}
-presto.version=330-SNAPSHOT
+#presto.version=334
 node.internal-address=presto-worker-1
 
 coordinator=false
@@ -322,13 +330,13 @@ http-server.http.enabled=false
 http-server.authentication.type=CERTIFICATE
 http-server.https.enabled=true
 http-server.https.port={{ env "NOMAD_PORT_connect" }}
-http-server.https.keystore.path=/alloc/presto.jks
+http-server.https.keystore.path=/alloc/presto.p12
 http-server.https.keystore.key=changeit
 
 # This is the same jks, but it will not do the consul connect authorization in intra cluster communication
 internal-communication.https.required=true
 internal-communication.shared-secret=asdasdsadafdsa
-internal-communication.https.keystore.path=/alloc/presto.jks
+internal-communication.https.keystore.path=/alloc/presto.p12
 internal-communication.https.keystore.key=changeit
 EOF
         destination   = "local/presto/config.properties"
@@ -402,12 +410,16 @@ EOF
       port = "connect"
     }
     task "certificate-handler" {
+      lifecycle {
+        hook    = "prestart"
+        sidecar = true
+      }
       driver = "docker"
       config {
-        image = "nginx:alpine"
+        image = "nginx:1.19"
         entrypoint = ["/bin/sh"]
         args = [
-          "-c", "openssl pkcs12 -export -password pass:changeit -in /local/leaf.pem -inkey /local/leaf.key -certfile /local/roots.pem -out /alloc/presto.p12; tail -f /dev/null"
+          "-c", "openssl pkcs12 -export -password pass:changeit -in /local/leaf.pem -inkey /local/leaf.key -certfile /local/roots.pem -out /alloc/presto.p12 && chmod +rx /alloc/presto.p12 && tail -f /dev/null"
         ]
       }
       template {
@@ -493,7 +505,7 @@ EOF
         data = <<EOF
 node.id={{ env "NOMAD_ALLOC_ID" }}
 node.environment={{ env "NOMAD_JOB_NAME" | replaceAll "-" "_" }}
-presto.version=330-SNAPSHOT
+#presto.version=334
 node.internal-address=presto-worker-2
 
 coordinator=false
@@ -503,13 +515,13 @@ http-server.http.enabled=false
 http-server.authentication.type=CERTIFICATE
 http-server.https.enabled=true
 http-server.https.port={{ env "NOMAD_PORT_connect" }}
-http-server.https.keystore.path=/alloc/presto.jks
+http-server.https.keystore.path=/alloc/presto.p12
 http-server.https.keystore.key=changeit
 
 # This is the same jks, but it will not do the consul connect authorization in intra cluster communication
 internal-communication.https.required=true
 internal-communication.shared-secret=asdasdsadafdsa
-internal-communication.https.keystore.path=/alloc/presto.jks
+internal-communication.https.keystore.path=/alloc/presto.p12
 internal-communication.https.keystore.key=changeit
 EOF
         destination   = "local/presto/config.properties"
