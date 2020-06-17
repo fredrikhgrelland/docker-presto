@@ -3,8 +3,8 @@ FROM prestosql/presto:334
 # Allow buildtime config of PRESTO_VERSION
 ARG PRESTO_CONSUL_CONNECT_VERSION
 # Set PRESTO_VERSION from arg if provided at build, env if provided at run, or default
-ENV PRESTO_CONSUL_CONNECT_VERSION=${PRESTO_CONSUL_CONNECT_VERSION:-1.0.2}
-ENV PRESTO_CONSUL_CONNECT_URL https://oss.sonatype.org/service/local/repositories/releases/content/io/github/gugalnikov/presto-consul-connect/$PRESTO_CONSUL_CONNECT_VERSION/presto-consul-connect-$PRESTO_CONSUL_CONNECT_VERSION.jar
+ENV PRESTO_CONSUL_CONNECT_VERSION=${PRESTO_CONSUL_CONNECT_VERSION:-1.0.3}
+ENV PRESTO_CONSUL_CONNECT_URL https://oss.sonatype.org/service/local/repositories/releases/content/io/github/gugalnikov/presto-consul-connect/$PRESTO_CONSUL_CONNECT_VERSION/presto-consul-connect-$PRESTO_CONSUL_CONNECT_VERSION-jar-with-dependencies.jar
 
 
 #Add ca_certificates to the image ( if trust is not allready added through base image )
