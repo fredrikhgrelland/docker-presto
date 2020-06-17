@@ -59,7 +59,6 @@ EOF
       template {
         data = "{{ with printf \"%s\" (or (env \"CONSUL_SERVICE\") \"presto\") | caLeaf }}{{ .CertPEM }}{{ end }}"
         destination = "local/leaf.pem"
-        vault_grace = "10s"
       }
       template {
         data = "{{ with printf \"%s\" (or (env \"CONSUL_SERVICE\") \"presto\") | caLeaf }}{{ .PrivateKeyPEM }}{{ end }}"
@@ -90,10 +89,9 @@ EOF
               hive.s3.aws-secret-key=minioadmin
               hive.s3.endpoint=http://{{ env "NOMAD_UPSTREAM_ADDR_minio" }}
               connector.name=hive-hadoop2
-              hive.metastore.uri=thrift://{{ env "NOMAD_UPSTREAM_ADDR_hive_connect_metastore" }}
+              hive.metastore.uri=thrift://{{ env "NOMAD_UPSTREAM_ADDR_hive_metastore" }}
               hive.s3select-pushdown.enabled=true
               hive.non-managed-table-writes-enabled=true
-              hive.s3.use-instance-credentials=false
               hive.s3.max-connections=5000
               hive.s3.max-error-retries=100
               hive.s3.socket-timeout=31m
@@ -104,8 +102,9 @@ EOF
         destination = "/local/hive.properties"
       }
       template {
+        #https://github.com/hashicorp/consul/blob/87f32c8ba661760501e09b72078b0476d332a10d/agent/connect/common_names.go#L27
         data = <<EOF
-127.0.0.1   presto localhost
+127.0.0.1 presto localhost
 EOF
         destination = "local/hosts"
       }
@@ -128,7 +127,6 @@ EOF
         data = <<EOF
 node.id={{ env "NOMAD_ALLOC_ID" }}
 node.environment={{ env "NOMAD_JOB_NAME" | replaceAll "-" "_" }}
-#presto.version=334
 node.internal-address=presto
 
 coordinator=true
@@ -195,6 +193,7 @@ EOF
       }
     }
   }
+  /*
   group "worker-1" {
     count = 1
     network {
@@ -249,7 +248,6 @@ EOF
       template {
         data = "{{ with printf \"%s\" (or (env \"CONSUL_SERVICE\") \"presto-worker-1\") | caLeaf }}{{ .CertPEM }}{{ end }}"
         destination = "local/leaf.pem"
-        vault_grace = "10s"
       }
       template {
         data = "{{ with printf \"%s\" (or (env \"CONSUL_SERVICE\") \"presto-worker-1\") | caLeaf }}{{ .PrivateKeyPEM }}{{ end }}"
@@ -261,6 +259,7 @@ EOF
       }
     }
     task "worker" {
+
       driver = "docker"
       resources {
         memory = 1024
@@ -282,10 +281,10 @@ EOF
           hive.s3.aws-secret-key=minioadmin
           hive.s3.endpoint=http://{{ env "NOMAD_UPSTREAM_ADDR_minio" }}
           connector.name=hive-hadoop2
-          hive.metastore.uri=thrift://{{ env "NOMAD_UPSTREAM_ADDR_hive_connect_metastore" }}
+          hive.metastore.uri=thrift://{{ env "NOMAD_UPSTREAM_ADDR_hive_metastore" }}
           hive.s3select-pushdown.enabled=true
           hive.non-managed-table-writes-enabled=true
-          hive.s3.use-instance-credentials=false
+          
           hive.s3.max-connections=5000
           hive.s3.max-error-retries=100
           hive.s3.socket-timeout=31m
@@ -434,7 +433,6 @@ EOF
       template {
         data = "{{ with printf \"%s\" (or (env \"CONSUL_SERVICE\") \"presto-worker-2\") | caLeaf }}{{ .CertPEM }}{{ end }}"
         destination = "local/leaf.pem"
-        vault_grace = "10s"
       }
       template {
         data = "{{ with printf \"%s\" (or (env \"CONSUL_SERVICE\") \"presto-worker-2\") | caLeaf }}{{ .PrivateKeyPEM }}{{ end }}"
@@ -467,10 +465,10 @@ EOF
           hive.s3.aws-secret-key=minioadmin
           hive.s3.endpoint=http://{{ env "NOMAD_UPSTREAM_ADDR_minio" }}
           connector.name=hive-hadoop2
-          hive.metastore.uri=thrift://{{ env "NOMAD_UPSTREAM_ADDR_hive_connect_metastore" }}
+          hive.metastore.uri=thrift://{{ env "NOMAD_UPSTREAM_ADDR_hive_metastore" }}
           hive.s3select-pushdown.enabled=true
           hive.non-managed-table-writes-enabled=true
-          hive.s3.use-instance-credentials=false
+          
           hive.s3.max-connections=5000
           hive.s3.max-error-retries=100
           hive.s3.socket-timeout=31m
@@ -565,4 +563,5 @@ EOF
 
     }
   }
+  */
 }
