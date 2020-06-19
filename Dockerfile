@@ -19,7 +19,7 @@ RUN \
     && curl -s -I -o /dev/null $PRESTO_CONSUL_CONNECT_URL || echo -e "\n###############\nERROR: You are probably behind a corporate proxy. Add your custom ca .crt in the ca_certificates docker build folder\n###############\n" \
     #Download and unpack plugin
     && mkdir -p /usr/lib/presto/plugin/consulconnect \
-    && curl -s -L $PRESTO_CONSUL_CONNECT_URL -o /usr/lib/presto/plugin/connect/presto-consul-connect-$PRESTO_CONSUL_CONNECT_VERSION.jar \
+    && curl -s -L $PRESTO_CONSUL_CONNECT_URL -o /usr/lib/presto/plugin/consulconnect/presto-consul-connect-$PRESTO_CONSUL_CONNECT_VERSION.jar \
 	&& rm -rf /var/tmp/*
 
 WORKDIR /lib/presto/default/etc
