@@ -41,17 +41,17 @@ job "presto" {
       }
       driver = "docker"
       config {
-        image = "nginx:alpine"
+        image = "nginx:1.19"
         entrypoint = ["/bin/sh"]
         args = [
-          "-c", "openssl pkcs12 -export -password pass:changeit -in /local/leaf.pem -inkey /local/leaf.key -certfile /local/roots.pem -out /alloc/presto.p12; tail -f /dev/null"
-          ]
+          "-c", "openssl pkcs12 -export -password pass:changeit -in /local/leaf.pem -inkey /local/leaf.key -certfile /local/roots.pem -out /alloc/presto.p12 && chmod +rx /alloc/presto.p12 && tail -f /dev/null"
+        ]
       }
       template {
         data = <<EOF
 CONSUL_SERVICE=presto
 CONSUL_HTTP_ADDR=http://127.0.0.1:8500
-CONSUL_TOKEN=b6e29626-e23d-98b4-e19f-c71a96fbdef7
+CONSUL_TOKEN=master
 EOF
         destination = "${NOMAD_SECRETS_DIR}/.env"
         env = true
@@ -85,34 +85,41 @@ EOF
       }
       template {
         data = <<EOH
-              hive.s3.aws-access-key=minioadmin
-              hive.s3.aws-secret-key=minioadmin
-              hive.s3.endpoint=http://{{ env "NOMAD_UPSTREAM_ADDR_minio" }}
-              connector.name=hive-hadoop2
-              hive.metastore.uri=thrift://{{ env "NOMAD_UPSTREAM_ADDR_hive_metastore" }}
-              hive.s3select-pushdown.enabled=true
-              hive.non-managed-table-writes-enabled=true
-              hive.s3.max-connections=5000
-              hive.s3.max-error-retries=100
-              hive.s3.socket-timeout=31m
-              hive.s3.ssl.enabled=false
-              hive.metastore-timeout=1m
-              hive.s3.path-style-access=true
-              EOH
+          hive.s3.aws-access-key=minioadmin
+          hive.s3.aws-secret-key=minioadmin
+          hive.s3.endpoint=http://{{ env "NOMAD_UPSTREAM_ADDR_minio" }}
+          connector.name=hive-hadoop2
+          hive.metastore.uri=thrift://{{ env "NOMAD_UPSTREAM_ADDR_hive_metastore" }}
+          hive.s3select-pushdown.enabled=true
+          hive.non-managed-table-writes-enabled=true
+          hive.s3.max-connections=5000
+          hive.s3.max-error-retries=100
+          hive.s3.socket-timeout=31m
+          hive.s3.ssl.enabled=false
+          hive.metastore-timeout=1m
+          hive.s3.path-style-access=true
+          EOH
         destination = "/local/hive.properties"
       }
       template {
         #https://github.com/hashicorp/consul/blob/87f32c8ba661760501e09b72078b0476d332a10d/agent/connect/common_names.go#L27
         data = <<EOF
-127.0.0.1 presto localhost
+127.0.0.1 presto presto.svc.default.{{ with $d := plugin "curl" "http://localhost:8500/v1/connect/ca/roots" | parseJSON }}{{ index ( $d.TrustDomain | split "-" ) 0 }}{{end}}.consul localhost
 EOF
         destination = "local/hosts"
+      }
+      template {
+        #https://github.com/hashicorp/consul/blob/87f32c8ba661760501e09b72078b0476d332a10d/agent/connect/common_names.go#L27
+        data = <<EOF
+{{ range caRoots }}{{. | toJSON}}{{ end }}
+EOF
+        destination = "local/node.json"
       }
       template {
         data = <<EOF
 CONSUL_SERVICE=presto
 CONSUL_HTTP_ADDR=http://127.0.0.1:8500
-CONSUL_TOKEN=b6e29626-e23d-98b4-e19f-c71a96fbdef7
+CONSUL_TOKEN=master
 EOF
         destination = "${NOMAD_SECRETS_DIR}/.env"
         env = true
@@ -127,12 +134,12 @@ EOF
         data = <<EOF
 node.id={{ env "NOMAD_ALLOC_ID" }}
 node.environment={{ env "NOMAD_JOB_NAME" | replaceAll "-" "_" }}
-node.internal-address=presto
+node.internal-address=presto.svc.default.{{ with $d := plugin "curl" "http://localhost:8500/v1/connect/ca/roots" | parseJSON }}{{ index ( $d.TrustDomain | split "-" ) 0 }}{{end}}.consul
 
 coordinator=true
 node-scheduler.include-coordinator=false
 discovery-server.enabled=true
-discovery.uri=https://presto:{{ env "NOMAD_PORT_connect" }}
+discovery.uri=https://presto.svc.default.{{ with $d := plugin "curl" "http://localhost:8500/v1/connect/ca/roots" | parseJSON }}{{ index ( $d.TrustDomain | split "-" ) 0 }}{{end}}.consul:{{ env "NOMAD_PORT_connect" }}
 
 http-server.http.enabled=false
 http-server.authentication.type=CERTIFICATE
@@ -240,7 +247,7 @@ EOF
         data = <<EOF
 CONSUL_SERVICE=presto-worker-1
 CONSUL_HTTP_ADDR=http://127.0.0.1:8500
-CONSUL_TOKEN=b6e29626-e23d-98b4-e19f-c71a96fbdef7
+CONSUL_TOKEN=master
 EOF
         destination = "${NOMAD_SECRETS_DIR}/.env"
         env = true
@@ -304,7 +311,7 @@ EOF
         data = <<EOF
 CONSUL_SERVICE=presto-worker-1
 CONSUL_HTTP_ADDR=http://127.0.0.1:8500
-CONSUL_TOKEN=b6e29626-e23d-98b4-e19f-c71a96fbdef7
+CONSUL_TOKEN=master
 EOF
         destination = "${NOMAD_SECRETS_DIR}/.env"
         env = true
@@ -425,7 +432,7 @@ EOF
         data = <<EOF
 CONSUL_SERVICE=presto-worker-2
 CONSUL_HTTP_ADDR=http://127.0.0.1:8500
-CONSUL_TOKEN=b6e29626-e23d-98b4-e19f-c71a96fbdef7
+CONSUL_TOKEN=master
 EOF
         destination = "${NOMAD_SECRETS_DIR}/.env"
         env = true
@@ -488,7 +495,7 @@ EOF
         data = <<EOF
 CONSUL_SERVICE=presto-worker-2
 CONSUL_HTTP_ADDR=http://127.0.0.1:8500
-CONSUL_TOKEN=b6e29626-e23d-98b4-e19f-c71a96fbdef7
+CONSUL_TOKEN=master
 EOF
         destination = "${NOMAD_SECRETS_DIR}/.env"
         env = true
