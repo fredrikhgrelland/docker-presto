@@ -8,7 +8,7 @@ ENV PRESTO_CONSUL_CONNECT_URL https://oss.sonatype.org/service/local/repositorie
 
 #Add ca_certificates to the image ( if trust is not allready added through base image )
 COPY ca_certificates/* /usr/local/share/ca-certificates/
-COPY lib/http-client-0.199.jar /usr/lib/presto/lib/http-client-0.198.jar
+COPY lib/http-client-custom.jar /usr/lib/presto/lib/http-client-0.197.jar
 WORKDIR /var/tmp
 
 #Install certs
