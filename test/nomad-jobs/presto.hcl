@@ -124,6 +124,7 @@ coordinator=true
 node-scheduler.include-coordinator=false
 discovery-server.enabled=true
 discovery.uri=https://localhost:{{ env "NOMAD_PORT_connect" }}
+discovery.http-client.https.hostname-verification=false
 
 http-server.http.enabled=false
 http-server.authentication.type=CERTIFICATE
