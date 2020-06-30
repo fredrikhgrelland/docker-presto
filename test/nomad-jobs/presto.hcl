@@ -123,7 +123,7 @@ node.internal-address=presto.svc.default.{{ with $d := plugin "curl" "http://loc
 coordinator=true
 node-scheduler.include-coordinator=false
 discovery-server.enabled=true
-discovery.uri=https://presto.svc.default.{{ with $d := plugin "curl" "http://localhost:8500/v1/connect/ca/roots" | parseJSON }}{{ index ( $d.TrustDomain | split "-" ) 0 }}{{end}}.consul:{{ env "NOMAD_PORT_connect" }}
+discovery.uri=https://localhost:{{ env "NOMAD_PORT_connect" }}
 
 http-server.http.enabled=false
 http-server.authentication.type=CERTIFICATE
@@ -306,7 +306,7 @@ node.environment={{ env "NOMAD_JOB_NAME" | replaceAll "-" "_" }}
 node.internal-address=presto-workers.svc.default.{{ with $d := plugin "curl" "http://localhost:8500/v1/connect/ca/roots" | parseJSON }}{{ index ( $d.TrustDomain | split "-" ) 0 }}{{end}}.consul
 
 coordinator=false
-discovery.uri=https://presto.svc.default.{{ with $d := plugin "curl" "http://localhost:8500/v1/connect/ca/roots" | parseJSON }}{{ index ( $d.TrustDomain | split "-" ) 0 }}{{end}}.consul:{{ range  $i, $s := service "presto" }}{{ if eq $i 0 }}{{ .Port }}{{ end }}{{ end }}
+discovery.uri=https://{{ range  $i, $s := service "presto" }}{{ if eq $i 0 }}{{ .Address }}:{{ .Port }}{{ end }}{{ end }}
 
 http-server.http.enabled=false
 http-server.authentication.type=CERTIFICATE
