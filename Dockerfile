@@ -17,13 +17,13 @@ RUN \
     #Update CA_Certs
     update-ca-certificates 2>/dev/null || true && echo "NOTE: CA warnings suppressed." \
     #Test download ( does ssl trust work )
-    && curl -I -o /dev/null $PRESTO_CONSUL_CONNECT_URL || echo -e "\n###############\nERROR: You are probably behind a corporate proxy. Add your custom ca .crt in the ca_certificates docker build folder\n###############\n" \
+    && curl -s -I -o /dev/null $PRESTO_CONSUL_CONNECT_URL || echo -e "\n###############\nERROR: You are probably behind a corporate proxy. Add your custom ca .crt in the ca_certificates docker build folder\n###############\n" \
     #Download and unpack plugin
     && mkdir -p /usr/lib/presto/plugin/consulconnect \
-    && curl -L $PRESTO_CONSUL_CONNECT_URL -o /usr/lib/presto/plugin/consulconnect/presto-consul-connect-$PRESTO_CONSUL_CONNECT_VERSION.jar \
+    && curl -s -L $PRESTO_CONSUL_CONNECT_URL -o /usr/lib/presto/plugin/consulconnect/presto-consul-connect-$PRESTO_CONSUL_CONNECT_VERSION.jar \
     #Download airlift patched lib
     && rm -rf /usr/lib/presto/lib/http-client-0.197.jar \
-    && curl -L $AIRLIFT_HTTP_CLIENT -o /usr/lib/presto/lib/http-client-0.197.jar \
+    && curl -s -L $AIRLIFT_HTTP_CLIENT -o /usr/lib/presto/lib/http-client-0.197.jar \
     && rm -rf /var/tmp/*
 
 WORKDIR /lib/presto/default/etc
