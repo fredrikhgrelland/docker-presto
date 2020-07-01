@@ -317,6 +317,10 @@ node.internal-address=presto-workers.svc.default.{{ with $d := plugin "curl" "ht
 coordinator=false
 discovery.uri=https://{{ range  $i, $s := service "presto" }}{{ if eq $i 0 }}{{ .Address }}:{{ .Port }}{{ end }}{{ end }}
 
+discovery.http-client.https.hostname-verification=false
+node-manager.http-client.https.hostname-verification=false
+exchange.http-client.https.hostname-verification=false
+
 http-server.http.enabled=false
 http-server.authentication.type=CERTIFICATE
 http-server.https.enabled=true
