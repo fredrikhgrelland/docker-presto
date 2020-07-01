@@ -124,7 +124,15 @@ coordinator=true
 node-scheduler.include-coordinator=false
 discovery-server.enabled=true
 discovery.uri=https://localhost:{{ env "NOMAD_PORT_connect" }}
+
 discovery.http-client.https.hostname-verification=false
+dynamic.http-client.https.hostname-verification=false
+failure-detector.http-client.https.hostname-verification=false
+memoryManager.http-client.https.hostname-verification=false
+node-manager.http-client.https.hostname-verification=false
+exchange.http-client.https.hostname-verification=false
+scheduler.http-client.https.hostname-verification=false
+workerInfo.http-client.https.hostname-verification=false
 
 http-server.http.enabled=false
 http-server.authentication.type=CERTIFICATE
