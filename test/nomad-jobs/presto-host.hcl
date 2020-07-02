@@ -64,7 +64,7 @@ job "presto-host" {
       }
     }
 
-    task "coordinator" {
+    task "worker" {
       driver = "docker"
 
       config {
