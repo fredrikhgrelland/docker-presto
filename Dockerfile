@@ -11,15 +11,18 @@ ENV AIRLIFT_HTTP_CLIENT https://oss.sonatype.org/service/local/repositories/rele
 COPY ca_certificates/* /usr/local/share/ca-certificates/
 WORKDIR /var/tmp
 
+USER root
 #Install certs
 RUN \
     #Update CA_Certs
     update-ca-certificates 2>/dev/null || true && echo "NOTE: CA warnings suppressed." \
     #Test download ( does ssl trust work )
     && curl -s -I -o /dev/null $PRESTO_CONSUL_CONNECT_URL || echo -e "\n###############\nERROR: You are probably behind a corporate proxy. Add your custom ca .crt in the ca_certificates docker build folder\n###############\n" \
-    && yum update && yum upgrade -y && yum install -y openssl \
+    && yum update -y && yum install -y openssl
+USER presto
+RUN \
     #Download and unpack plugin
-    && mkdir -p /usr/lib/presto/plugin/consulconnect \
+    mkdir -p /usr/lib/presto/plugin/consulconnect \
     && curl -s -L $PRESTO_CONSUL_CONNECT_URL -o /usr/lib/presto/plugin/consulconnect/presto-consul-connect-$PRESTO_CONSUL_CONNECT_VERSION.jar \
     #Download airlift patched lib
     && rm -rf /usr/lib/presto/lib/http-client-0.197.jar \
