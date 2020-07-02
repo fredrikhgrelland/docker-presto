@@ -102,7 +102,7 @@ EOF
       template {
         data = <<EOF
 CONSUL_SERVICE=presto
-CONSUL_HTTP_ADDR=http://127.0.0.1:8500
+CONSUL_HTTP_ADDR=http://10.0.3.10:8500
 CONSUL_TOKEN=master
 EOF
         destination = "${NOMAD_SECRETS_DIR}/.env"
@@ -184,6 +184,7 @@ com.ning.http.client=DEBUG
 io.prestosql.server.PluginManager=DEBUG
 io.prestosql.presto.server.security=DEBUG
 io.prestosql.plugin.certificate.consulconnect=DEBUG
+io.airlift.discovery=DEBUG
 
 EOF
         destination   = "local/presto/log.properties"
@@ -224,7 +225,7 @@ EOF
       }
     }
     service {
-      name = "presto-workers"
+      name = "prestoworkers"
       port = "connect"
     }
 
@@ -238,15 +239,15 @@ EOF
         image = "nginx:1.19"
         entrypoint = ["/bin/sh"]
         args = [
-          "-c", "openssl pkcs12 -export -password pass:changeit -in /local/leaf.pem -inkey /local/leaf.key -certfile /local/roots.pem -out /alloc/presto.p12 && chmod +rx /alloc/presto.p12 && tail -f /dev/null"
+          "-c", "openssl pkcs12 -export -password pass:changeit -in /local/leaf.pem -inkey /local/leaf.key -certfile /local/roots.pem -out /alloc/presto.p12 && chmod +rx /alloc/presto.p12 && cp /local/leaf.pem /local/leaf.key /local/roots.pem /alloc && tail -f /dev/null"
         ]
       }
       template {
-        data = "{{with caLeaf \"presto-workers\" }}{{ .CertPEM }}{{ end }}"
+        data = "{{with caLeaf \"prestoworkers\" }}{{ .CertPEM }}{{ end }}"
         destination = "local/leaf.pem"
       }
       template {
-        data = "{{with caLeaf \"presto-workers\" }}{{ .PrivateKeyPEM }}{{ end }}"
+        data = "{{with caLeaf \"prestoworkers\" }}{{ .PrivateKeyPEM }}{{ end }}"
         destination = "local/leaf.key"
       }
       template {
@@ -289,14 +290,14 @@ EOF
       template {
         #https://github.com/hashicorp/consul/blob/87f32c8ba661760501e09b72078b0476d332a10d/agent/connect/common_names.go#L27
         data = <<EOF
-127.0.0.1 presto-workers.svc.default.{{ with $d := plugin "curl" "http://localhost:8500/v1/connect/ca/roots" | parseJSON }}{{ index ( $d.TrustDomain | split "-" ) 0 }}{{end}}.consul localhost
+127.0.0.1 prestoworkers localhost
 EOF
         destination = "local/hosts"
       }
       template {
         data = <<EOF
-CONSUL_SERVICE=presto-workers
-CONSUL_HTTP_ADDR=http://127.0.0.1:8500
+CONSUL_SERVICE=prestoworkers
+CONSUL_HTTP_ADDR=http://10.0.3.10:8500
 CONSUL_TOKEN=master
 EOF
         destination = "${NOMAD_SECRETS_DIR}/.env"
@@ -312,7 +313,7 @@ EOF
         data = <<EOF
 node.id={{ env "NOMAD_ALLOC_ID" }}
 node.environment={{ env "NOMAD_JOB_NAME" | replaceAll "-" "_" }}
-node.internal-address=presto-workers.svc.default.{{ with $d := plugin "curl" "http://localhost:8500/v1/connect/ca/roots" | parseJSON }}{{ index ( $d.TrustDomain | split "-" ) 0 }}{{end}}.consul
+node.internal-address=prestoworkers
 
 coordinator=false
 discovery.uri=https://{{ range  $i, $s := service "presto" }}{{ if eq $i 0 }}{{ .Address }}:{{ .Port }}{{ end }}{{ end }}
@@ -371,6 +372,7 @@ com.ning.http.client=DEBUG
 io.prestosql.server.PluginManager=DEBUG
 io.prestosql.presto.server.security=DEBUG
 io.prestosql.plugin.certificate.consulconnect=DEBUG
+io.airlift=DEBUG
 
 EOF
         destination   = "local/presto/log.properties"
