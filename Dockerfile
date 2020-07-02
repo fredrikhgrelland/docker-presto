@@ -10,7 +10,6 @@ ENV AIRLIFT_HTTP_CLIENT https://oss.sonatype.org/service/local/repositories/rele
 #Add ca_certificates to the image ( if trust is not already added through base image )
 COPY ca_certificates/* /usr/local/share/ca-certificates/
 COPY lib/http-client-custom.jar /usr/lib/presto/lib/http-client-0.197.jar
-COPY lib/discovery-custom.jar /usr/lib/presto/lib/discovery-0.197.jar
 WORKDIR /var/tmp
 
 #Install certs
@@ -23,8 +22,8 @@ RUN \
     && mkdir -p /usr/lib/presto/plugin/consulconnect \
     && curl -s -L $PRESTO_CONSUL_CONNECT_URL -o /usr/lib/presto/plugin/consulconnect/presto-consul-connect-$PRESTO_CONSUL_CONNECT_VERSION.jar \
     #Download airlift patched lib
-    && rm -rf /usr/lib/presto/lib/http-client-0.197.jar \
-    && curl -s -L $AIRLIFT_HTTP_CLIENT -o /usr/lib/presto/lib/http-client-0.197.jar \
+    #&& rm -rf /usr/lib/presto/lib/http-client-0.197.jar \
+    #&& curl -s -L $AIRLIFT_HTTP_CLIENT -o /usr/lib/presto/lib/http-client-0.197.jar \
     && rm -rf /var/tmp/*
 
 WORKDIR /lib/presto/default/etc
