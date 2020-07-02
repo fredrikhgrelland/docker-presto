@@ -17,7 +17,7 @@ RUN \
     update-ca-certificates 2>/dev/null || true && echo "NOTE: CA warnings suppressed." \
     #Test download ( does ssl trust work )
     && curl -s -I -o /dev/null $PRESTO_CONSUL_CONNECT_URL || echo -e "\n###############\nERROR: You are probably behind a corporate proxy. Add your custom ca .crt in the ca_certificates docker build folder\n###############\n" \
-    && apt update && apt upgrade -y && apt install -y openssl \
+    && apt-get update && apt-get upgrade -y && apt-get install -y openssl \
     #Download and unpack plugin
     && mkdir -p /usr/lib/presto/plugin/consulconnect \
     && curl -s -L $PRESTO_CONSUL_CONNECT_URL -o /usr/lib/presto/plugin/consulconnect/presto-consul-connect-$PRESTO_CONSUL_CONNECT_VERSION.jar \
