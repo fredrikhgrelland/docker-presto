@@ -41,10 +41,10 @@ job "presto" {
       }
       driver = "docker"
       config {
-        image = "nginx:1.19"
+        image = "tomcat:9.0"
         entrypoint = ["/bin/sh"]
         args = [
-          "-c", "openssl pkcs12 -export -password pass:changeit -in /local/leaf.pem -inkey /local/leaf.key -certfile /local/roots.pem -out /alloc/presto.p12 && chmod +rx /alloc/presto.p12 && tail -f /dev/null"
+          "-c", "openssl pkcs12 -export -password pass:changeit -in /local/leaf.pem -inkey /local/leaf.key -certfile /local/leaf.pem -out /local/presto.p12; keytool -noprompt -importkeystore -srckeystore /local/presto.p12 -srcstoretype pkcs12 -destkeystore /local/presto.jks -deststoretype JKS -deststorepass changeit -srcstorepass changeit; keytool -noprompt -import -trustcacerts -keystore /local/presto.jks -storepass changeit -alias Root -file /local/roots.pem; keytool -noprompt -importkeystore -srckeystore /local/presto.jks -destkeystore /alloc/presto.jks -deststoretype pkcs12 -deststorepass changeit -srcstorepass changeit; tail -f /dev/null"
         ]
       }
       template {
@@ -95,7 +95,8 @@ job "presto" {
       template {
         #https://github.com/hashicorp/consul/blob/87f32c8ba661760501e09b72078b0476d332a10d/agent/connect/common_names.go#L27
         data = <<EOF
-127.0.0.1 presto presto.svc.default.{{ with $d := plugin "curl" "http://localhost:8500/v1/connect/ca/roots" | parseJSON }}{{ index ( $d.TrustDomain | split "-" ) 0 }}{{end}}.consul localhost
+127.0.0.1 presto localhost
+10.0.3.10 prestoworkers
 EOF
         destination = "local/hosts"
       }
@@ -118,7 +119,7 @@ EOF
         data = <<EOF
 node.id={{ env "NOMAD_ALLOC_ID" }}
 node.environment={{ env "NOMAD_JOB_NAME" | replaceAll "-" "_" }}
-node.internal-address=presto.svc.default.{{ with $d := plugin "curl" "http://localhost:8500/v1/connect/ca/roots" | parseJSON }}{{ index ( $d.TrustDomain | split "-" ) 0 }}{{end}}.consul
+node.internal-address=presto
 
 coordinator=true
 node-scheduler.include-coordinator=true
@@ -138,13 +139,13 @@ http-server.http.enabled=false
 http-server.authentication.type=CERTIFICATE
 http-server.https.enabled=true
 http-server.https.port={{ env "NOMAD_PORT_connect" }}
-http-server.https.keystore.path=/alloc/presto.p12
+http-server.https.keystore.path=/alloc/presto.jks
 http-server.https.keystore.key=changeit
 
 # This is the same jks, but it will not do the consul connect authorization in intra cluster communication
 internal-communication.https.required=true
 internal-communication.shared-secret=asdasdsadafdsa
-internal-communication.https.keystore.path=/alloc/presto.p12
+internal-communication.https.keystore.path=/alloc/presto.jks
 internal-communication.https.keystore.key=changeit
 
 query.client.timeout=5m
@@ -235,10 +236,10 @@ EOF
       }
       driver = "docker"
       config {
-        image = "nginx:1.19"
+        image = "tomcat:9.0"
         entrypoint = ["/bin/sh"]
         args = [
-          "-c", "openssl pkcs12 -export -password pass:changeit -in /local/leaf.pem -inkey /local/leaf.key -certfile /local/roots.pem -out /alloc/presto.p12 && chmod +rx /alloc/presto.p12 && cp /local/leaf.pem /local/leaf.key /local/roots.pem /alloc && tail -f /dev/null"
+          "-c", "openssl pkcs12 -export -password pass:changeit -in /local/leaf.pem -inkey /local/leaf.key -certfile /local/leaf.pem -out /local/presto.p12; keytool -noprompt -importkeystore -srckeystore /local/presto.p12 -srcstoretype pkcs12 -destkeystore /local/presto.jks -deststoretype JKS -deststorepass changeit -srcstorepass changeit; keytool -noprompt -import -trustcacerts -keystore /local/presto.jks -storepass changeit -alias Root -file /local/roots.pem; keytool -noprompt -importkeystore -srckeystore /local/presto.jks -destkeystore /alloc/presto.jks -deststoretype pkcs12 -deststorepass changeit -srcstorepass changeit; tail -f /dev/null"
         ]
       }
       template {
@@ -290,6 +291,7 @@ EOF
         #https://github.com/hashicorp/consul/blob/87f32c8ba661760501e09b72078b0476d332a10d/agent/connect/common_names.go#L27
         data = <<EOF
 127.0.0.1 prestoworkers localhost
+10.0.3.10 presto
 EOF
         destination = "local/hosts"
       }
@@ -325,13 +327,13 @@ http-server.http.enabled=false
 http-server.authentication.type=CERTIFICATE
 http-server.https.enabled=true
 http-server.https.port={{ env "NOMAD_PORT_connect" }}
-http-server.https.keystore.path=/alloc/presto.p12
+http-server.https.keystore.path=/alloc/presto.jks
 http-server.https.keystore.key=changeit
 
 # This is the same jks, but it will not do the consul connect authorization in intra cluster communication
 internal-communication.https.required=true
 internal-communication.shared-secret=asdasdsadafdsa
-internal-communication.https.keystore.path=/alloc/presto.p12
+internal-communication.https.keystore.path=/alloc/presto.jks
 internal-communication.https.keystore.key=changeit
 
 query.client.timeout=5m
