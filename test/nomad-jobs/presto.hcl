@@ -121,7 +121,7 @@ node.environment={{ env "NOMAD_JOB_NAME" | replaceAll "-" "_" }}
 node.internal-address=presto.svc.default.{{ with $d := plugin "curl" "http://localhost:8500/v1/connect/ca/roots" | parseJSON }}{{ index ( $d.TrustDomain | split "-" ) 0 }}{{end}}.consul
 
 coordinator=true
-node-scheduler.include-coordinator=false
+node-scheduler.include-coordinator=true
 discovery-server.enabled=true
 discovery.uri=https://localhost:{{ env "NOMAD_PORT_connect" }}
 
@@ -180,11 +180,10 @@ EOF
 
 io.prestosql=DEBUG
 com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory=DEBUG
-com.ning.http.client=DEBUG
 io.prestosql.server.PluginManager=DEBUG
 io.prestosql.presto.server.security=DEBUG
 io.prestosql.plugin.certificate.consulconnect=DEBUG
-io.airlift.discovery=DEBUG
+io.airlift=DEBUG
 
 EOF
         destination   = "local/presto/log.properties"
@@ -368,7 +367,6 @@ EOF
 
 io.prestosql=DEBUG
 com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory=DEBUG
-com.ning.http.client=DEBUG
 io.prestosql.server.PluginManager=DEBUG
 io.prestosql.presto.server.security=DEBUG
 io.prestosql.plugin.certificate.consulconnect=DEBUG

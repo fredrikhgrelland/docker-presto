@@ -10,6 +10,7 @@ ENV AIRLIFT_HTTP_CLIENT https://oss.sonatype.org/service/local/repositories/rele
 #Add ca_certificates to the image ( if trust is not already added through base image )
 COPY ca_certificates/* /usr/local/share/ca-certificates/
 COPY lib/http-client-custom.jar /usr/lib/presto/lib/http-client-0.197.jar
+COPY lib/discovery-custom.jar /usr/lib/presto/lib/discovery-0.197.jar
 WORKDIR /var/tmp
 
 #Install certs
