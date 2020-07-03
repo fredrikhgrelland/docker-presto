@@ -45,17 +45,5 @@
 - name: Response body result_hive_metastore
   debug: msg="Here {{ (result_hive_metastore.json) }}"
 
-- name: Hive-server healthchecks pass
-  uri:
-    #    curl -G -v localhost:8500/v1/health/checks/hive-server --data-urlencode 'filter=(Status=="passing")'
-    url: http://localhost:8500/v1/health/checks/hive-server?filter={{ '(Status=="passing")' | urlencode }}
-    method: GET
-    return_content: yes
-    status_code: 200
-    body_format: json
-  register: result_hive_server
-  retries: 20
-  delay: 30
-  until: result_hive_server.json | length == 2
-- name: Response body result_hive_server
-  debug: msg="Here {{ (result_hive_server.json) }}"
+- name: Missing Presto tests
+  debug: msg="TODO Presto tests"
