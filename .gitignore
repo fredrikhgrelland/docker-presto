@@ -1,4 +1,5 @@
-.vagrant
 .idea
+.vagrant
 .terraform
 *.tfstate*
+tmp

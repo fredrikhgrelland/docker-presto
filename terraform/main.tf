@@ -3,14 +3,14 @@ provider "nomad" {
 }
 
 resource "nomad_job" "minio" {
-  jobspec = file("${path.cwd}/../nomad-jobs/minio.hcl")
+  jobspec = file("${path.cwd}/../nomad/minio.hcl")
   detach = false
 }
 resource "nomad_job" "hive" {
-  jobspec = file("${path.cwd}/../nomad-jobs/hive.hcl")
+  jobspec = file("${path.cwd}/../nomad/hive.hcl")
   detach = false
 }
 resource "nomad_job" "presto" {
-  jobspec = file("${path.cwd}/../nomad-jobs/presto.hcl")
+  jobspec = file("${path.cwd}/../nomad/presto.hcl")
   detach = false
 }

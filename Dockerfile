@@ -8,7 +8,7 @@ ENV PRESTO_CONSUL_CONNECT_URL https://oss.sonatype.org/service/local/repositorie
 ENV AIRLIFT_HTTP_CLIENT https://oss.sonatype.org/service/local/repositories/releases/content/io/github/gugalnikov/http-client/1.0.0/http-client-1.0.0.jar
 
 #Add ca_certificates to the image ( if trust is not already added through base image )
-COPY ca_certificates/* /usr/local/share/ca-certificates/
+COPY ca_certificates /usr/local/share/ca-certificates/
 WORKDIR /var/tmp
 
 USER root

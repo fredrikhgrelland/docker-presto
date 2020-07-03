@@ -2,7 +2,23 @@
 - hosts: all
   become: yes
   tasks:
-    - debug: msg="{{ mode }} mode"
+    - name: UnLoad docker image
+      docker_image:
+        name: presto
+        tag: local
+        force_absent: true
+        state: absent
+
+    - name: Load docker image
+      docker_image:
+        source: load
+        name: presto
+        force_source: true
+        force_tag: true
+        load_path: /vagrant/tmp/dockerImage.tar
+        state: present
+        timeout: 120
+
     - name: Terraform
       terraform:
         project_path: ../terraform
