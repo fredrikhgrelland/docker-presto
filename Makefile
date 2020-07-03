@@ -27,7 +27,6 @@ copy-consul:
 	if [ ! -f "./tmp/consul" ]; then mkdir -p ./tmp; vagrant ssh -c "cp /usr/local/bin/consul /vagrant/tmp/consul"; fi;
 
 test:
-	$(MAKE) clean
 	SSL_CERT_FILE=${SSL_CERT_FILE} CURL_CA_BUNDLE=${CURL_CA_BUNDLE} ANSIBLE_ARGS='--extra-vars "mode=test"' vagrant up --provision
 	$(MAKE) clean
 
@@ -37,5 +36,7 @@ ifdef CUSTOM_CA
 endif
 
 build: custom_ca
+	mkdir -p tmp
 	docker build . -t local/presto:$(sha)
-	docker tag  local/presto:$(sha) local/presto:latest
+	docker tag  local/presto:$(sha) local/presto:local
+	docker save --output tmp/dockerImage.tar local/presto:local
