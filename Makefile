@@ -8,7 +8,7 @@ sha = $(shell git rev-parse --verify HEAD)
 
 #### Development ####
 # start commands
-up: clean update-box
+up: update-box
 	SSL_CERT_FILE=${SSL_CERT_FILE} CURL_CA_BUNDLE=${CURL_CA_BUNDLE} ANSIBLE_ARGS='--extra-vars "mode=dev"' vagrant up --provision
 
 update-box:
